@@ -14,14 +14,12 @@ const clickSound = document.getElementById('click-sfx');
 let tempUserData = null;
 let currentSentCode = "";
 
-// Intro Animation
 window.onload = () => {
     setTimeout(() => { 
         if(whooshSound) { whooshSound.volume = 0.5; whooshSound.play().catch(()=>{}); }
     }, 500);
 };
 
-// Activate System
 activateBtn.onclick = () => {
     if(clickSound) clickSound.play();
     introScreen.style.opacity = "0";
@@ -31,7 +29,6 @@ activateBtn.onclick = () => {
     }, 800);
 };
 
-// Switch Forms
 document.getElementById('to-reg-link').onclick = (e) => {
     e.preventDefault(); 
     if(clickSound) clickSound.play(); 
@@ -44,7 +41,6 @@ document.getElementById('to-login-link').onclick = (e) => {
     formsWrapper.style.transform = "translateX(0)";
 };
 
-// --- REGISTRATSIYA ---
 const regForm = document.getElementById('reg-form');
 regForm.onsubmit = (e) => {
     e.preventDefault();
@@ -54,20 +50,15 @@ regForm.onsubmit = (e) => {
     const errorMsg = document.getElementById('reg-error-msg');
 
     let users = JSON.parse(localStorage.getItem('users')) ||[];
-    
-    // Foydalanuvchi bandligini tekshirish (katta/kichik harflarni farqlamasdan)
     if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
         errorMsg.innerText = "Bu foydalanuvchi nomi band!";
         return;
     }
-    
-    // Parol uzunligini tekshirish
     if (password.length !== 8) {
         errorMsg.innerText = "Parol 8 ta belgidan iborat bo'lishi kerak!";
         return;
     }
 
-    // 5 xonali kod yaratish
     currentSentCode = Math.floor(10000 + Math.random() * 90000).toString();
 
     const templateParams = {
@@ -76,7 +67,6 @@ regForm.onsubmit = (e) => {
         auth_code: currentSentCode
     };
 
-    // Email yuborish
     emailjs.send('service_cqi9bt6', 'template_cit74ko', templateParams)
         .then(() => {
             tempUserData = { username, email, password };
@@ -89,7 +79,6 @@ regForm.onsubmit = (e) => {
         });
 };
 
-// --- TASDIQLASH ---
 document.getElementById('verify-confirm-btn').onclick = () => {
     const codeInput = document.getElementById('verify-code-input').value.trim();
     const verifyError = document.getElementById('verify-error');
@@ -109,7 +98,6 @@ document.getElementById('verify-confirm-btn').onclick = () => {
     }
 };
 
-// --- KIRISH ---
 const loginForm = document.getElementById('login-form');
 loginForm.onsubmit = (e) => {
     e.preventDefault();
