@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Premium Glass Auth</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+
+    <!-- Dinamik Fon va Roblox Skinlari -->
+    <div class="bg-scene">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <img src="https://www.pngmart.com/files/22/Roblox-Avatar-PNG-Transparent.png" class="roblox-skin skin-left" alt="skin">
+        <img src="https://www.pngmart.com/files/22/Roblox-Avatar-PNG-Isolated-Photo.png" class="roblox-skin skin-right" alt="skin">
+    </div>
+
+    <!-- Ovozlar -->
+    <audio id="whoosh-sfx" src="https://www.soundjay.com/misc/sounds/whoosh-01.mp3" preload="auto"></audio>
+    <audio id="hover-sfx" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
+    <audio id="click-sfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+
+    <!-- 1. INTRO SCREEN (REKLAMA) -->
+    <div id="intro-screen">
+        <div class="intro-content">
+            <h1 class="hello-txt">HELLO EVERYONE</h1>
+            <p class="intro-sub">Sizni ko'rib turganimizdan xursandmiz</p>
+            <div class="power-container">
+                <div class="power-btn" id="activate-btn">
+                    <i class="fa-solid fa-power-off"></i>
+                </div>
+                <p class="power-label">TIZIMNI FAOLLASHTIRISH</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. TASDIQLASH MODALI -->
+    <div id="verify-modal" class="modal-overlay">
+        <div class="modal-glass">
+            <h3>TASDIQLASH</h3>
+            <p>Emailingizga yuborilgan 5 xonali kodni kiriting</p>
+            <input type="text" id="verify-code-input" placeholder="00000" maxlength="5">
+            <button id="verify-confirm-btn" class="glass-btn primary-btn">TASDIQLASH</button>
+            <p id="verify-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- 3. ASOSIY KONTEYNER (SHISHA OYNA) -->
+    <div class="container" id="main-container">
+        <div class="shimmer-light"></div>
+        <div class="forms-wrapper">
+            
+            <!-- KIRISH QISMI -->
+            <div class="form-box login">
+                <form id="login-form">
+                    <h2 class="form-title">Kirish</h2>
+                    <div class="input-wrap">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="login-username" placeholder="Foydalanuvchi nomi" required>
+                    </div>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="login-password" placeholder="Parol" required>
+                    </div>
+                    <p id="login-error-msg" class="error-msg"></p>
+                    <button type="submit" class="glass-btn primary-btn">KIRISH</button>
+                    <p class="switch-txt">Hisobingiz yo'qmi? <a href="#" id="to-reg-link">Ro'yxatdan o'tish</a></p>
+                    
+                    <!-- TELEGRAM BO'LIMI -->
+                    <div class="tg-area">
+                        <div class="divider"></div>
+                        <div class="tg-buttons">
+                            <a href="https://t.me/random_uzbek" target="_blank" class="tg-link-btn channel">
+                                <i class="fa-brands fa-telegram"></i> TELEGRAM
+                            </a>
+                            <a href="https://t.me/uzbxackerbot_bot" target="_blank" class="tg-link-btn bot">
+                                <i class="fa-solid fa-robot"></i> BOTGA O'TISH
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- REGISTRATSIYA QISMI -->
+            <div class="form-box register">
+                <form id="reg-form">
+                    <h2 class="form-title">Registratsiya</h2>
+                    <div class="input-wrap">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="reg-username" placeholder="Foydalanuvchi nomi" required>
+                    </div>
+                    <div class="input-wrap">
+                        <i class="fa-regular fa-envelope"></i>
+                        <input type="email" id="reg-email" placeholder="Email manzili" required>
+                    </div>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="reg-password" placeholder="Parol (8 ta belgi)" required>
+                    </div>
+                    <p id="reg-error-msg" class="error-msg"></p>
+                    <button type="submit" class="glass-btn primary-btn">KOD YUBORISH</button>
+                    <p class="switch-txt">Hisobingiz bormi? <a href="#" id="to-login-link">Kirish</a></p>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
