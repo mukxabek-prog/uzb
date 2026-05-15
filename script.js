@@ -9,19 +9,15 @@ const mainContainer = document.getElementById('main-container');
 const formsWrapper = document.querySelector('.forms-wrapper');
 
 const whooshSound = document.getElementById('whoosh-sfx');
-const hoverSound = document.getElementById('hover-sfx');
 const clickSound = document.getElementById('click-sfx');
 
 let tempUserData = null;
 let currentSentCode = "";
 
-// Intro Animation & Sound
+// Intro Animation
 window.onload = () => {
     setTimeout(() => { 
-        if(whooshSound) {
-            whooshSound.volume = 0.5; 
-            whooshSound.play().catch(()=>{}); 
-        }
+        if(whooshSound) { whooshSound.volume = 0.5; whooshSound.play().catch(()=>{}); }
     }, 500);
 };
 
@@ -52,18 +48,22 @@ document.getElementById('to-login-link').onclick = (e) => {
 const regForm = document.getElementById('reg-form');
 regForm.onsubmit = (e) => {
     e.preventDefault();
-    const username = document.getElementById('reg-username').value;
-    const email = document.getElementById('reg-email').value;
+    const username = document.getElementById('reg-username').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
     const errorMsg = document.getElementById('reg-error-msg');
 
-    let users = JSON.parse(localStorage.getItem('users')) || [];
-    if (users.some(u => u.username === username)) {
+    let users = JSON.parse(localStorage.getItem('users')) ||[];
+    
+    // Foydalanuvchi bandligini tekshirish (katta/kichik harflarni farqlamasdan)
+    if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
         errorMsg.innerText = "Bu foydalanuvchi nomi band!";
         return;
     }
+    
+    // Parol uzunligini tekshirish
     if (password.length !== 8) {
-        errorMsg.innerText = "Parol kam yoki ko'p, 8 ta kiriting";
+        errorMsg.innerText = "Parol 8 ta belgidan iborat bo'lishi kerak!";
         return;
     }
 
@@ -76,12 +76,13 @@ regForm.onsubmit = (e) => {
         auth_code: currentSentCode
     };
 
+    // Email yuborish
     emailjs.send('service_cqi9bt6', 'template_cit74ko', templateParams)
         .then(() => {
             tempUserData = { username, email, password };
             document.getElementById('verify-modal').style.display = "flex";
             errorMsg.innerText = "";
-            alert("Emailingizni tekshiring, kod yuborildi!");
+            alert("Emailingizni tekshiring, tasdiqlash kodi yuborildi!");
         }, (err) => {
             errorMsg.innerText = "Email yuborishda xato!";
             console.error("EmailJS Error:", err);
@@ -90,11 +91,11 @@ regForm.onsubmit = (e) => {
 
 // --- TASDIQLASH ---
 document.getElementById('verify-confirm-btn').onclick = () => {
-    const codeInput = document.getElementById('verify-code-input').value;
+    const codeInput = document.getElementById('verify-code-input').value.trim();
     const verifyError = document.getElementById('verify-error');
 
     if (codeInput === currentSentCode) {
-        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let users = JSON.parse(localStorage.getItem('users')) ||[];
         users.push(tempUserData);
         localStorage.setItem('users', JSON.stringify(users));
 
@@ -102,6 +103,7 @@ document.getElementById('verify-confirm-btn').onclick = () => {
         document.getElementById('verify-modal').style.display = "none";
         formsWrapper.style.transform = "translateX(0)"; 
         regForm.reset();
+        document.getElementById('verify-code-input').value = "";
     } else {
         verifyError.innerText = "Kod xato!";
     }
@@ -111,20 +113,8 @@ document.getElementById('verify-confirm-btn').onclick = () => {
 const loginForm = document.getElementById('login-form');
 loginForm.onsubmit = (e) => {
     e.preventDefault();
-    const user = document.getElementById('login-username').value;
+    const user = document.getElementById('login-username').value.trim();
     const pass = document.getElementById('login-password').value;
     const errorMsg = document.getElementById('login-error-msg');
 
-    let users = JSON.parse(localStorage.getItem('users')) || [];
-    const foundUser = users.find(u => u.username === user);
-
-    if (!foundUser) {
-        errorMsg.innerText = "Foydalanuvchi topilmadi!";
-    } else if (foundUser.password !== pass) {
-        errorMsg.innerText = "Noto'g'ri parol!";
-    } else {
-        errorMsg.style.color = "#00ff00";
-        errorMsg.innerText = "Muvaffaqiyatli kirildi!";
-        setTimeout(() => alert("Xush kelibsiz!"), 500);
-    }
-};
+    let users = JSON.parse(localStorage.getItem('users')) ||
