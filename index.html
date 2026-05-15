@@ -7,11 +7,10 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- EmailJS SDK -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
-    <!-- Dinamik Fon va Roblox Skinlari -->
     <div class="bg-scene">
         <div class="glow-orb orb-1"></div>
         <div class="glow-orb orb-2"></div>
@@ -19,12 +18,10 @@
         <img src="https://www.pngmart.com/files/22/Roblox-Avatar-PNG-Isolated-Photo.png" class="roblox-skin skin-right" alt="skin">
     </div>
 
-    <!-- Ovozlar -->
     <audio id="whoosh-sfx" src="https://www.soundjay.com/misc/sounds/whoosh-01.mp3" preload="auto"></audio>
     <audio id="hover-sfx" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
     <audio id="click-sfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
 
-    <!-- 1. INTRO SCREEN (REKLAMA) -->
     <div id="intro-screen">
         <div class="intro-content">
             <h1 class="hello-txt">HELLO EVERYONE</h1>
@@ -38,7 +35,6 @@
         </div>
     </div>
 
-    <!-- 2. TASDIQLASH MODALI -->
     <div id="verify-modal" class="modal-overlay">
         <div class="modal-glass">
             <h3>TASDIQLASH</h3>
@@ -49,12 +45,9 @@
         </div>
     </div>
 
-    <!-- 3. ASOSIY KONTEYNER (SHISHA OYNA) -->
     <div class="container" id="main-container">
         <div class="shimmer-light"></div>
         <div class="forms-wrapper">
-            
-            <!-- KIRISH QISMI -->
             <div class="form-box login">
                 <form id="login-form">
                     <h2 class="form-title">Kirish</h2>
@@ -69,8 +62,6 @@
                     <p id="login-error-msg" class="error-msg"></p>
                     <button type="submit" class="glass-btn primary-btn">KIRISH</button>
                     <p class="switch-txt">Hisobingiz yo'qmi? <a href="#" id="to-reg-link">Ro'yxatdan o'tish</a></p>
-                    
-                    <!-- TELEGRAM BO'LIMI -->
                     <div class="tg-area">
                         <div class="divider"></div>
                         <div class="tg-buttons">
@@ -85,7 +76,6 @@
                 </form>
             </div>
 
-            <!-- REGISTRATSIYA QISMI -->
             <div class="form-box register">
                 <form id="reg-form">
                     <h2 class="form-title">Registratsiya</h2>
@@ -106,7 +96,6 @@
                     <p class="switch-txt">Hisobingiz bormi? <a href="#" id="to-login-link">Kirish</a></p>
                 </form>
             </div>
-
         </div>
     </div>
 
