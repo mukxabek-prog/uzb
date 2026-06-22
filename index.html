@@ -1,16 +1,29 @@
-<div id="display">1.00x</div>
-<button id="betBtn">Tikish (10 UC)</button>
+<style>
+    #game-container { position: relative; width: 400px; height: 200px; border: 2px solid #333; overflow: hidden; background: #f0f0f0; }
+    #plane { 
+        position: absolute; bottom: 0; left: 0; 
+        transition: transform 0.1s linear; /* Silliq harakat uchun */
+    }
+</style>
 
-<script src="/socket.io/socket.io.js"></script>
+<div id="game-container">
+    <div id="multiplier" style="font-size: 30px; font-weight: bold;">1.00x</div>
+    <img id="plane" src="https://cdn-icons-png.flaticon.com/512/201/201623.png" width="50">
+</div>
+
 <script>
-    const socket = io();
-    const display = document.getElementById('display');
+    const plane = document.getElementById('plane');
+    const multiplierEl = document.getElementById('multiplier');
 
-    socket.on('tick', (val) => {
-        display.innerText = val + 'x';
-    });
-
-    socket.on('crash', (val) => {
-        display.innerText = "CRASH: " + val + 'x';
-    });
+    // Bu qism serverdan keladigan 'tick' hodisasida chaqiriladi
+    function updateGame(val) {
+        multiplierEl.innerText = val + 'x';
+        
+        // Samolyotni koordinatalar bo'ylab surish
+        // Koeffitsiyent oshgani sari samolyot tepaga va o'ngga qarab ketadi
+        let x = (val - 1) * 100; // O'ngga harakat
+        let y = (val - 1) * 40;  // Tepaga harakat
+        
+        plane.style.transform = `translate(${x}px, -${y}px)`;
+    }
 </script>
