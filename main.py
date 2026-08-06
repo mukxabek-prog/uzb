@@ -1,12 +1,11 @@
 import os
 import asyncio
 import logging
-import urllib.parse
-import aiohttp
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.types import FSInputFile
 from deep_translator import GoogleTranslator
+from gradio_client import Client
 
 logging.basicConfig(level=logging.INFO)
 
@@ -18,44 +17,49 @@ dp = Dispatcher()
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     await message.answer(
-        "Salom! Men AI Generator botman. 🎬\n\n"
-        "Menga o'zbekcha yoki inglizcha matn yuboring, men sizga harakatlanuvchi GIF/video tayyorlab beraman!"
+        "Salom! Men AI Video Generator botman. 🎬\n\n"
+        "Menga o'zbekcha matn yuboring, men sizga **haqiqiy MP4 video** tayyorlab beraman!\n\n"
+        "Masalan: *Suv ostida suzib yurgan rang-barang baliqlar*"
     )
 
 @dp.message(F.text)
-async def generate_animation_handler(message: types.Message):
+async def generate_video_handler(message: types.Message):
     user_prompt = message.text
-    status_msg = await message.answer("⏳ Prompt tarjima qilinib, GIF/Video tayyorlanmoqda...")
+    status_msg = await message.answer("⏳ Prompt tarjima qilinib, video generatsiya bo'lmoqda (1-2 daqiqa kuting)...")
 
     try:
-        # 1. O'zbekcha promptni ingliz tiliga o'girish
+        # 1. O'zbekcha promptni ingliz tiliga tarjima qilish
         translated_prompt = GoogleTranslator(source='auto', target='en').translate(user_prompt)
-        encoded_prompt = urllib.parse.quote(translated_prompt)
+
+        # 2. AI Video modelga so'rov yuborish (Async thread ichida)
+        loop = asyncio.get_running_loop()
         
-        # 2. Harakatlanuvchi (GIF/Video) model linki
-        url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&private=true"
+        def call_video_ai():
+            # Bepul va ochiq video generator model
+            client = Client("ZeroScope/ZeroScope_v2_XL")
+            result = client.predict(
+                translated_prompt,
+                api_name="/predict"
+            )
+            return result
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    image_bytes = await response.read()
-                    file_path = "output.png"
-                    
-                    with open(file_path, "wb") as f:
-                        f.write(image_bytes)
+        # Video yo'lini olish
+        video_path = await loop.run_in_executor(None, call_video_ai)
 
-                    photo_file = FSInputFile(file_path)
-                    await message.answer_photo(
-                        photo=photo_file, 
-                        caption=f"✨ **Sizning prompt:** {user_prompt}\n🔤 **AI tushungan matn:** {translated_prompt}"
-                    )
-                    await status_msg.delete()
-                else:
-                    await status_msg.edit_text("❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.")
+        if video_path and os.path.exists(video_path):
+            # 3. Videoni Telegram'ga .mp4 formatda yuborish
+            video_file = FSInputFile(video_path)
+            await message.answer_video(
+                video=video_file, 
+                caption=f"🎬 **Prompt:** {user_prompt}\n🔤 **AI o'qigan matn:** {translated_prompt}"
+            )
+            await status_msg.delete()
+        else:
+            await status_msg.edit_text("❌ Videoni yaratishda xatolik yuz berdi.")
 
     except Exception as e:
         logging.error(f"Xatolik: {e}")
-        await status_msg.edit_text("❌ Serverda xatolik yuz berdi.")
+        await status_msg.edit_text("❌ Server band yoki xatolik yuz berdi. Qaytadan urinib ko'ring.")
 
 async def main():
     await dp.start_polling(bot)
