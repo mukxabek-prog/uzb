@@ -6,11 +6,10 @@ import aiohttp
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.types import FSInputFile
+from deep_translator import GoogleTranslator
 
-# Loglarni sozlash
 logging.basicConfig(level=logging.INFO)
 
-# Telegram Bot Token (Render Environment Variables'dan olinadi)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 bot = Bot(token=BOT_TOKEN)
@@ -19,36 +18,36 @@ dp = Dispatcher()
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     await message.answer(
-        "Salom! Men AI Generator botman. 🎬🎨\n\n"
-        "Menga ingliz tilida matn (prompt) yuboring, men sizga rasmli animatsiya yaratib beraman!\n\n"
-        "Masalan: *A cool cat walking on the beach with sunglasses*"
+        "Salom! Men AI Generator botman. 🎬\n\n"
+        "Menga o'zbekcha yoki inglizcha matn yuboring, men sizga harakatlanuvchi GIF/video tayyorlab beraman!"
     )
 
 @dp.message(F.text)
-async def generate_media_handler(message: types.Message):
-    prompt = message.text
-    status_msg = await message.answer("⏳ Genratsiya jarayoni ketmoqda, kuting...")
+async def generate_animation_handler(message: types.Message):
+    user_prompt = message.text
+    status_msg = await message.answer("⏳ Prompt tarjima qilinib, GIF/Video tayyorlanmoqda...")
 
     try:
-        # Promptni URL formatiga o'tkazish
-        encoded_prompt = urllib.parse.quote(prompt)
-        # Bepul Pollinations AI generator manzili
-        url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?model=flux&seed=42"
+        # 1. O'zbekcha promptni ingliz tiliga o'girish
+        translated_prompt = GoogleTranslator(source='auto', target='en').translate(user_prompt)
+        encoded_prompt = urllib.parse.quote(translated_prompt)
+        
+        # 2. Harakatlanuvchi (GIF/Video) model linki
+        url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&private=true"
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 if response.status == 200:
                     image_bytes = await response.read()
-                    file_path = "output.jpg"
+                    file_path = "output.png"
                     
                     with open(file_path, "wb") as f:
                         f.write(image_bytes)
 
-                    # Natijani Telegram'ga yuborish
                     photo_file = FSInputFile(file_path)
                     await message.answer_photo(
                         photo=photo_file, 
-                        caption=f"✨ **Prompt:** {prompt}"
+                        caption=f"✨ **Sizning prompt:** {user_prompt}\n🔤 **AI tushungan matn:** {translated_prompt}"
                     )
                     await status_msg.delete()
                 else:
