@@ -1,69 +1,72 @@
 import os
 import asyncio
 import logging
-import urllib.parse
 import aiohttp
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
-from aiogram.types import FSInputFile
-from deep_translator import GoogleTranslator
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 logging.basicConfig(level=logging.INFO)
 
+# Environment Variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+SMM_API_KEY = os.getenv("SMM_API_KEY")  # SMM Panel API Key
+SMM_API_URL = "https://justanotherpanel.com/api/v2"  # O'zingiz ishlatadigan SMM Panel API linki
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
+# Asosiy tugmalar (Menu)
+main_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🚀 Buyurtma berish"), KeyboardButton(text="💰 Balansim")],
+        [KeyboardButton(text="📊 Xizmatlar narxi"), KeyboardButton(text="👨‍💻 Qo'llab-quvvatlash")]
+    ],
+    resize_keyboard=True
+)
+
 @dp.message(CommandStart())
-async def start_handler(message: types.Message):
+async def start_cmd(message: types.Message):
     await message.answer(
-        "Salom! Men AI Generator botman. 🎬\n\n"
-        "Menga matn yuboring, men sizga media tayyorlab beraman!"
+        f"Salom, **{message.from_user.first_name}**! 👋\n"
+        "**Nakrutka Bot**ga xush kelibsiz. Kanal va profillaringizni osongina rivojlantiring!",
+        reply_markup=main_menu,
+        parse_mode="Markdown"
     )
 
-@dp.message(F.text)
-async def generate_media_handler(message: types.Message):
-    user_prompt = message.text
-    status_msg = await message.answer("⏳ Generatsiya jarayoni ketmoqda...")
+# SMM Panelga API so'rov yuboruvchi funksiya
+async def create_smm_order(service_id: int, link: str, quantity: int):
+    payload = {
+        'key': SMM_API_KEY,
+        'action': 'add',
+        'service': service_id,
+        'link': link,
+        'quantity': quantity
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(SMM_API_URL, data=payload) as resp:
+            return await resp.json()
 
-    # 1. Tarjimani xavfsiz qilish (Xatolik bo'lsa, asl textni oladi)
-    try:
-        translated_prompt = GoogleTranslator(source='auto', target='en').translate(user_prompt)
-        # Agar tarjima xato javob qaytarsa yoki ichida "Error" so'zi bo'lsa:
-        if not translated_prompt or "Error 500" in translated_prompt or "There was an error" in translated_prompt:
-            translated_prompt = user_prompt
-    except Exception as t_err:
-        logging.error(f"Tarjima xatosi: {t_err}")
-        translated_prompt = user_prompt
+# Buyurtma berish tugmasi bosilganda
+@dp.message(F.text == "🚀 Buyurtma berish")
+async def order_start(message: types.Message):
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="👥 Telegram Obunachi", callback_data="serv_tg_sub")],
+        [InlineKeyboardButton(text="👁 Telegram Ko'rishlar (Views)", callback_data="serv_tg_view")],
+        [InlineKeyboardButton(text="❤️ Instagram Layklar", callback_data="serv_insta_like")]
+    ])
+    await message.answer("Kerakli xizmat turini tanlang:", reply_markup=kb)
 
-    try:
-        # 2. Promptni URL formatiga o'tkazish
-        encoded_prompt = urllib.parse.quote(translated_prompt)
-        url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&private=true"
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    media_bytes = await response.read()
-                    file_path = "output.jpg"
-                    
-                    with open(file_path, "wb") as f:
-                        f.write(media_bytes)
-
-                    photo_file = FSInputFile(file_path)
-                    
-                    await message.answer_photo(
-                        photo=photo_file, 
-                        caption=f"✨ **Siz yuborgan matn:** {user_prompt}\n🔤 **AI tayyorlagan prompt:** {translated_prompt}"
-                    )
-                    await status_msg.delete()
-                else:
-                    await status_msg.edit_text("❌ Serverdan javob olishda xatolik yuz berdi.")
-
-    except Exception as e:
-        logging.error(f"Xatolik: {e}")
-        await status_msg.edit_text("❌ Xatolik yuz berdi, qaytadan urinib ko'ring.")
+# Balansni ko'rish
+@dp.message(F.text == "💰 Balansim")
+async def show_balance(message: types.Message):
+    # Bu yerda ma'lumotlar bazasidan (Database) foydalanuvchi balansini chiqarasiz
+    user_balance = 0  # Misol uchun 0 so'm
+    
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💳 Balansni to'ldirish", callback_data="top_up")]
+    ])
+    await message.answer(f"💵 Sizning balansingiz: **{user_balance} so'm**", reply_markup=kb, parse_mode="Markdown")
 
 async def main():
     await dp.start_polling(bot)
