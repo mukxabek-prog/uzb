@@ -8,10 +8,8 @@ from aiogram.filters import CommandStart
 from aiogram.types import FSInputFile
 from deep_translator import GoogleTranslator
 
-# Loglarni sozlash
 logging.basicConfig(level=logging.INFO)
 
-# Telegram Bot Token
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 bot = Bot(token=BOT_TOKEN)
@@ -20,46 +18,52 @@ dp = Dispatcher()
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     await message.answer(
-        "Salom! Men AI Video Generator botman. 🎬\n\n"
-        "Menga o'zbekcha matn yuboring, men sizga harakatlanuvchi **GIF / Video** tayyorlab beraman!"
+        "Salom! Men AI Generator botman. 🎬\n\n"
+        "Menga matn yuboring, men sizga media tayyorlab beraman!"
     )
 
 @dp.message(F.text)
-async def generate_video_handler(message: types.Message):
+async def generate_media_handler(message: types.Message):
     user_prompt = message.text
-    status_msg = await message.answer("⏳ Video tayyorlanmoqda, iltimos kuting...")
+    status_msg = await message.answer("⏳ Generatsiya jarayoni ketmoqda...")
+
+    # 1. Tarjimani xavfsiz qilish (Xatolik bo'lsa, asl textni oladi)
+    try:
+        translated_prompt = GoogleTranslator(source='auto', target='en').translate(user_prompt)
+        # Agar tarjima xato javob qaytarsa yoki ichida "Error" so'zi bo'lsa:
+        if not translated_prompt or "Error 500" in translated_prompt or "There was an error" in translated_prompt:
+            translated_prompt = user_prompt
+    except Exception as t_err:
+        logging.error(f"Tarjima xatosi: {t_err}")
+        translated_prompt = user_prompt
 
     try:
-        # 1. O'zbekcha promptni ingliz tiliga tarjima qilamiz
-        translated_prompt = GoogleTranslator(source='auto', target='en').translate(user_prompt)
+        # 2. Promptni URL formatiga o'tkazish
         encoded_prompt = urllib.parse.quote(translated_prompt)
-        
-        # 2. Bepul ochiq Video API'ga so'rov yuboramiz (mp4/gif video qaytaradi)
-        video_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?model=flux&nologo=true"
+        url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&private=true"
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(video_url) as response:
+            async with session.get(url) as response:
                 if response.status == 200:
-                    video_bytes = await response.read()
-                    file_path = "output.mp4"
+                    media_bytes = await response.read()
+                    file_path = "output.jpg"
                     
                     with open(file_path, "wb") as f:
-                        f.write(video_bytes)
+                        f.write(media_bytes)
 
-                    video_file = FSInputFile(file_path)
+                    photo_file = FSInputFile(file_path)
                     
-                    # 3. Videoni Telegram'ga yuborish
-                    await message.answer_animation(
-                        animation=video_file,
-                        caption=f"🎬 **Prompt:** {user_prompt}\n🔤 **AI o'qigan matn:** {translated_prompt}"
+                    await message.answer_photo(
+                        photo=photo_file, 
+                        caption=f"✨ **Siz yuborgan matn:** {user_prompt}\n🔤 **AI tayyorlagan prompt:** {translated_prompt}"
                     )
                     await status_msg.delete()
                 else:
-                    await status_msg.edit_text("❌ Serverdan video olishda xatolik yuz berdi.")
+                    await status_msg.edit_text("❌ Serverdan javob olishda xatolik yuz berdi.")
 
     except Exception as e:
         logging.error(f"Xatolik: {e}")
-        await status_msg.edit_text("❌ Videoni yaratishda xatolik yuz berdi. Birozdan so'ng urinib ko'ring.")
+        await status_msg.edit_text("❌ Xatolik yuz berdi, qaytadan urinib ko'ring.")
 
 async def main():
     await dp.start_polling(bot)
