@@ -1,1 +1,3 @@
-pip install replicate
+aiogram>=3.0.0
+aiohttp
+python-dotenv
